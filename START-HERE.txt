@@ -1,0 +1,26 @@
+AERO MAIL FREE — START HERE
+
+1. Create a private GitHub repo named aero-mail and upload this folder's contents.
+2. Create a Supabase Free project. Run supabase/schema.sql in SQL Editor.
+3. Copy Supabase Project URL + publishable key (or anon key) into public/config.js.
+4. Verify aero.ist in Resend. Add the exact DNS records Resend provides.
+5. Configure Supabase Auth custom SMTP using Resend (smtp.resend.com, SSL port 465, username resend, password your Resend API key).
+6. Deploy Supabase Edge Functions:
+     npm install --save-dev supabase
+     npx supabase login
+     npx supabase link --project-ref YOUR_PROJECT_REF
+     npx supabase secrets set RESEND_API_KEY=re_xxx MAIL_DOMAIN=aero.ist AERO_INGEST_SECRET=YOUR_LONG_RANDOM_SECRET
+     npx supabase functions deploy send-email
+     npx supabase functions deploy email-ingest --no-verify-jwt
+7. Put aero.ist on Cloudflare, enable Email Routing, deploy cloudflare-worker:
+     cd cloudflare-worker
+     npm install
+     npx wrangler login
+     npx wrangler secret put SUPABASE_INGEST_URL
+     npx wrangler secret put AERO_INGEST_SECRET
+     npx wrangler deploy
+8. Create a Render Static Site from the GitHub repo. Publish directory = public; no build command.
+9. Add mail.aero.ist as a Render custom domain and create the DNS record Render shows in Cloudflare.
+10. In Supabase Auth → URL Configuration, set Site URL to https://mail.aero.ist and allow https://mail.aero.ist/** (plus the Render preview URL if needed). Keep the Confirm signup template on {{ .ConfirmationURL }}. Then test registration, email verification, sign-in, send, and receive.
+
+The README.md has full details. This is a webmail service (email in the website), not an IMAP/POP server.

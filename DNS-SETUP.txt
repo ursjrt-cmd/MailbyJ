@@ -1,0 +1,10 @@
+AERO MAIL FREE DNS CHECKLIST
+
+1. Cloudflare Email Routing MX records at aero.ist: add exactly the MX records Cloudflare shows after enabling Email Routing.
+2. Resend DKIM: add the exact record(s) from Resend > Domains > aero.ist.
+3. Resend SPF: add the exact sender policy shown by Resend. Merge with any existing SPF into ONE TXT record only.
+4. DMARC: publish _dmarc TXT. Suggested monitoring policy: v=DMARC1; p=none; rua=mailto:dmarc@aero.ist (only create this if you will receive reports).
+5. mail CNAME: add mail.aero.ist -> the exact Render target shown in Render > Custom Domains.
+6. Cloudflare Worker catch-all: deploy cloudflare-worker/wrangler.toml with addresses = ["*@aero.ist"]. Review Wrangler output to confirm catch-all Worker routing is active.
+
+Do not copy guessed IP addresses, MX targets, DKIM keys, Resend verification tokens, or Render CNAME targets. They are unique to your accounts.

@@ -1,0 +1,75 @@
+AERO MAIL — LOGIN, API KEY & EMAIL VERIFICATION FIX
+====================================================
+Production website: https://mail.aero.ist/
+
+1) FIX THE “UNREGISTERED API KEY” ERROR
+--------------------------------------
+This is a Supabase project credential mismatch, not an email/password problem.
+
+- Open Supabase Dashboard and select the project used by Aero Mail.
+- Go to Project Settings → API Keys (the current dashboard may label this API).
+- Copy the Project URL, for example https://YOUR-PROJECT-REF.supabase.co.
+- Copy that same project's Publishable key beginning sb_publishable_... . The legacy anon key is also accepted.
+- In this project, open public/config.js and replace BOTH placeholders:
+    SUPABASE_URL: "https://YOUR-PROJECT-REF.supabase.co"
+    SUPABASE_PUBLISHABLE_KEY: "sb_publishable_REPLACE_WITH_YOUR_REAL_KEY"
+- Keep AUTH_REDIRECT_URL as https://mail.aero.ist/.
+- Do NOT paste a Supabase secret/service_role key, Resend key, Cloudflare secret, or database password into public/config.js.
+- Commit the file and redeploy the Render Static Site. Hard refresh the site (Ctrl+Shift+R).
+
+The source bundle cannot contain your real Supabase project URL/key because they are specific to your account. The public publishable key is designed to be used by browser code; database permissions must remain protected by the included Row Level Security policies.
+
+2) SET THE CORRECT SUPABASE REDIRECT URLS
+-----------------------------------------
+Supabase Dashboard → Authentication → URL Configuration:
+
+Site URL:
+    https://mail.aero.ist
+
+Additional Redirect URLs:
+    https://mail.aero.ist/**
+    https://YOUR-RENDER-SITE.onrender.com/**   (only if you still use the Render preview URL)
+
+Remove localhost as the Site URL. You may leave a localhost URL in Additional Redirect URLs only for intentional local development; production signup/reset links in this build explicitly return to mail.aero.ist.
+
+3) CHECK THE CONFIRMATION EMAIL TEMPLATE
+----------------------------------------
+Supabase Dashboard → Authentication → Email Templates → Confirm signup.
+Use the Supabase-generated confirmation URL (do not hard-code localhost or an old webmail domain). A minimal template link is:
+
+    <a href="{{ .ConfirmationURL }}">Confirm my Aero Mail account</a>
+
+The app passes emailRedirectTo=https://mail.aero.ist/ at signup and password recovery. The generated confirmation URL must preserve Supabase's verification URL and redirect_to parameter.
+
+4) RUN THE DATABASE SETUP ONCE
+------------------------------
+Supabase Dashboard → SQL Editor → New Query:
+- Run the complete supabase/schema.sql included in this project.
+- Confirm that public.mailboxes, public.mail_messages and public.mail_attachments exist.
+- Confirm the public.create_mailbox(text,text) function exists and is executable by authenticated users.
+
+5) EXPECTED ACCOUNT FLOW
+------------------------
+A. Create account: enter name, desired local part, recovery email and password.
+B. When Supabase email confirmation is ON, Aero Mail displays a success message and switches to Sign in. Open the newest confirmation email.
+C. The verification link returns to https://mail.aero.ist/ (not localhost).
+D. Sign in using the same recovery email and password.
+E. If no Aero address row exists yet, complete the “Create your mailbox” step. Your chosen address is stored in the account metadata to prefill this screen.
+F. Existing mailboxes are loaded automatically on subsequent sign-ins.
+
+If an email is not confirmed, the page displays a Resend verification email action. Use the newest email link only.
+
+6) DEPLOY
+---------
+For Render Static Site:
+- Repository: your Aero Mail GitHub repository
+- Build command: leave blank
+- Publish directory: public
+- Custom domain: mail.aero.ist
+- Commit/push the changed files; wait for Render's deployment to finish; then hard refresh.
+
+7) SECURITY REMINDERS
+---------------------
+- Never share a password, Supabase secret/service_role key, Resend API key, or Cloudflare Worker secret.
+- A Supabase publishable key is public by design; it is not a substitute for Row Level Security.
+- This source bundle cannot verify your account-specific Supabase URL/key, email SMTP provider, DNS records, or Render domain mapping. Those must match your own dashboards.

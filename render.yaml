@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: aero-mail-web
+    runtime: static
+    buildCommand: ""
+    staticPublishPath: ./public
+    autoDeploy: true
